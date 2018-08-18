@@ -1,0 +1,23 @@
+---
+-  hosts: localhost
+   gather_facts: false
+   tasks:
+     - name: Creating Security Group
+       ec2_group:
+         name: mysecuritygroup
+         description: Creating new Security Group
+         region: ap-south-1
+         rules:
+           - proto: tcp
+             from_port: 80
+             to_port: 80
+             cidr_ip: 0.0.0.0/0
+           - proto: tcp
+             from_port: 443
+             to_port: 443
+             cidr_ip: 0.0.0.0/0
+           - proto: tcp
+             from_port: 22
+             to_port: 22
+             cidr_ip: 0.0.0.0/0
+
