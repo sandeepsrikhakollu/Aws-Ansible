@@ -1,0 +1,2 @@
+[local]
+localhost anisble_user=root ansible_ssh_pass=sandeep@325
