@@ -1,0 +1,57 @@
+--- 
+-  hosts: localhost
+   gather_facts: false
+   vars:
+     securitygroup_name: mysecuritygroup
+   tasks:
+     - name: Creating Security Group
+       ec2_group:
+         name: "{{ securitygroup_name }}"
+         description: Creating new Security Group
+         region: ap-south-1
+         rules:
+           - proto: tcp
+             from_port: 80
+             to_port: 80
+             cidr_ip: 0.0.0.0/0
+           - proto: tcp
+             from_port: 443
+             to_port: 443
+             cidr_ip: 0.0.0.0/0
+           - proto: tcp
+             from_port: 22
+             to_port: 22
+             cidr_ip: 0.0.0.0/0
+
+-  hosts: localhost
+   gather_facts: false
+   tasks:
+     - name: Creating key pair
+       ec2_key:
+         name: keypairthroughansible
+         state: present
+
+-  hosts: localhost
+   gather_facts: false
+   tasks:
+     - name: Update the system
+       command: apt-get update -y
+     - name: Create EC2 instances
+       ec2:
+         region: ap-south-1
+         key_name: keypairthroughansible
+         instance_type: t2.micro
+         image: ami-00b6a8a2bd28daf19
+         wait: yes
+         wait_timeout: 500
+         instance_tags:
+           name: EC2Ansible
+         assign_public_ip: no
+         instance_initiated_shutdown_behavior: terminate
+         group: mysecuritygroup
+         state: present
+         volumes:
+           - device_name: /dev/xvda
+             snapshot: snap-06c71487dfe312f0f
+             volume_size: 8
+       register: ec2
