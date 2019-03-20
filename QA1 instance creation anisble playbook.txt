@@ -1,0 +1,62 @@
+---
+-  hosts: localhost
+   gather_facts: false
+   tasks:
+     - name: Create EC2 instances
+       ec2:
+         vpc_subnet_id: subnet-7334ca38
+         region: us-west-2
+         key_name: Deployment_POC_KEY
+         instance_type: t2.medium
+         image: ami-020cbb68e5420b012
+         group: luma-qa1-web-sg
+         wait: yes
+         wait_timeout: 500
+         count: 1
+         instance_tags:
+           ENVIRONMENT: QA1
+         assign_public_ip: yes
+         state: present
+         key_name: Deployment_POC_KEY
+       register: ec2
+
+       ec2_eip:
+         device_id: "{{ ec2_instance_id }}"
+         ip: 54.244.148.76
+
+       pre_tasks:
+         - name: Get ELB facts
+           module: ec2_elb_facts
+             names: LUMA-QA1-WEB
+           register: elb
+
+         - name: Delete Instances from the ELB
+           local_action:
+             module: ec2_elb
+             args:
+               instance_id: "{{ elb_instance_id }}"
+               state: 'absent'
+       post_tasks:
+         - name: Add Instance to Load Balancer
+           local_action:
+             module: ec2_elb
+             instance_id: "{{ ec2_instance_id }}"
+             state: present
+
+       route53:
+//         - name: Delete existing IP Address from Route53
+//           command: delete
+//           zone: qa1.local
+//           record: lumaweb01.qa1.local
+//           type: A
+//           value: "{{ rec.set.value }}"
+
+//         - name: Add IP Address to the Route53
+//             state: present
+//           zone: qa1.local
+//           record: lumaweb01.qa1.local
+//           type: A
+//           value: "{{ ec2_ipv4.address }}"
+//           wait: yes
+
+
